@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Маленький Эйнштейн">
-<title>Маленький Эйнштейн — Волшебная лаборатория v0.3</title>
+<title>Маленький Эйнштейн — Большие приключения v0.4</title>
 <style>
 :root{--ink:#24435d;--sky:#8de1f5;--blue:#68c9ed;--gold:#ffd36e;--green:#7bd9a2;--pink:#ff9eb7;--white:#fff;--shadow:#367f9140}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink)}
@@ -149,7 +149,7 @@ header{padding-top:16px}
 <body>
 <div class="app">
 <header>
- <div class="brand">🔬 МАЛЕНЬКИЙ ЭЙНШТЕЙН<br><small>ВОЛШЕБНАЯ ЛАБОРАТОРИЯ · v0.3</small></div>
+ <div class="brand">🔬 МАЛЕНЬКИЙ ЭЙНШТЕЙН<br><small>БОЛЬШИЕ ПРИКЛЮЧЕНИЯ · v0.4</small></div>
  <div class="stats"><div class="stat">⭐ <span id="stars">0</span></div><div class="stat">🏅 <span id="medals">0</span></div></div>
 </header>
 
@@ -165,8 +165,26 @@ header{padding-top:16px}
   <button class="world nature" onclick="openWorld('nature')"><span class="art">🌳</span><b>Природа</b><small>Растения и звери</small></button>
  </section>
  <section class="lab-banner"><span class="lab-icon">🧪</span><span><b>Волшебная лаборатория</b><small>Каждый урок — новое открытие!</small></span><span class="lab-sparkle">✨</span></section>
+ <div class="heading" style="margin-top:22px">🚀 Большие приключения</div>
+ <section class="worlds portal-worlds">
+  <button class="world air" onclick="openAdventure('sky')"><span class="art">🎈</span><b>Воздушное</b><small>Шар и ветер</small></button>
+  <button class="world water" onclick="openAdventure('ocean')"><span class="art">🐠</span><b>Подводное</b><small>Тайны океана</small></button>
+  <button class="world nature" onclick="openAdventure('forest')"><span class="art">🦊</span><b>Лесное</b><small>Жизнь леса</small></button>
+  <button class="world" onclick="openAdventure('lab')"><span class="art">🔬</span><b>Лаборатория</b><small>Опыты и открытия</small></button>
+ </section>
+ <section class="progress-card"><span>🌟 Задания приключений</span><span><strong id="adventureCompleted">0</strong> / 12</span></section>
   <section class="progress-card"><span>🏆 Мои открытия</span><span><strong id="completed">0</strong> / 15 уроков</span></section>
  <div class="badges" id="homeBadges"></div>
+</main>
+
+<main id="adventure" class="screen">
+ <button class="back" onclick="goHome()">← На главную</button>
+ <section class="panel world-head">
+  <div class="world-big" id="adventureIcon">🎈</div>
+  <h2 id="adventureTitle">Приключение</h2>
+  <div class="lesson-copy" id="adventureDesc"></div>
+  <div class="lesson-list" id="adventureTasks"></div>
+ </section>
 </main>
 
 <main id="world" class="screen">
@@ -176,7 +194,7 @@ header{padding-top:16px}
 
 <main id="lesson" class="screen">
  <button class="back" onclick="show('world')">← К уровням</button>
- <section class="panel"><div id="lessonIcon" class="lesson-art">🎈</div><h2 id="lessonTitle"></h2><div id="lessonText" class="lesson-copy"></div><div class="tip" id="lessonFact"></div><div class="actions"><button class="btn blue" onclick="speakLesson()">🔊 Послушать</button><button class="btn" onclick="startQuiz()">🧠 Вопрос профессора</button></div></section>
+ <section class="panel"><div id="lessonIcon" class="lesson-art">🎈</div><h2 id="lessonTitle"></h2><div id="lessonText" class="lesson-copy"></div><div class="tip" id="lessonFact"></div><div class="actions" id="lessonActions"><button class="btn blue" onclick="speakLesson()">🔊 Послушать</button><button class="btn" onclick="startQuiz()">🧠 Вопрос профессора</button></div></section>
 </main>
 
 <main id="quiz" class="screen">
@@ -229,13 +247,109 @@ function say(text){if(!("speechSynthesis"in window)){document.getElementById("sp
 function openWorld(key){worldKey=key;let w=worlds[key];document.getElementById("worldIcon").textContent=w.icon;document.getElementById("worldTitle").textContent=w.title;document.getElementById("worldDesc").textContent=w.desc;let list=document.getElementById("levels");list.innerHTML="";w.levels.forEach((l,i)=>{let done=state.done.includes(key+i);let b=document.createElement("button");b.className="level";b.innerHTML=`<span class="level-icon">${l.icon}</span><span class="level-name">${i+1}. ${l.title}</span><span class="status">${done?"⭐":"🔒".replace("🔒","✨")}</span>`;b.onclick=()=>openLesson(i);list.appendChild(b)});show("world")}
 function openLesson(i){levelIndex=i;let l=worlds[worldKey].levels[i];document.getElementById("lessonIcon").textContent=l.icon;document.getElementById("lessonTitle").textContent=l.title;document.getElementById("lessonText").textContent=l.text;document.getElementById("lessonFact").textContent="💡 "+l.fact;show("lesson")}
 function speakLesson(){let l=worlds[worldKey].levels[levelIndex];say("Привет! Сегодня мы узнаем: "+l.title+". "+l.text+" "+l.fact)}
-function startQuiz(){let l=worlds[worldKey].levels[levelIndex];document.getElementById("question").textContent=l.q;document.getElementById("feedback").textContent="";document.getElementById("nextBtn").style.display="none";let box=document.getElementById("answers");box.innerHTML="";l.a.forEach((answer,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=answer;b.onclick=()=>answerQuiz(i,b);box.appendChild(b)});quizPassed=false;show("quiz");say("А теперь вопрос! "+l.q)}
+function startQuiz(){document.getElementById("nextBtn").onclick=afterQuiz;let l=worlds[worldKey].levels[levelIndex];document.getElementById("question").textContent=l.q;document.getElementById("feedback").textContent="";document.getElementById("nextBtn").style.display="none";let box=document.getElementById("answers");box.innerHTML="";l.a.forEach((answer,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=answer;b.onclick=()=>answerQuiz(i,b);box.appendChild(b)});quizPassed=false;show("quiz");say("А теперь вопрос! "+l.q)}
 function answerQuiz(i,button){let l=worlds[worldKey].levels[levelIndex];let all=[...document.querySelectorAll("#answers button")];all.forEach(b=>b.disabled=true);if(i===l.c){button.classList.add("correct");document.getElementById("feedback").textContent="🌟 Верно! Ты настоящий маленький учёный!";quizPassed=true;say("Правильно! Ты настоящий маленький учёный!")}else{button.classList.add("wrong");all[l.c].classList.add("correct");document.getElementById("feedback").textContent="Почти! Посмотри на подсказку и попробуй запомнить.";quizPassed=false;say("Почти получилось. Посмотри на зелёный ответ и запомни его.")}document.getElementById("nextBtn").style.display="block"}
 function afterQuiz(){if(quizPassed)startMini();else startQuiz()}
 function startMini(){let l=worlds[worldKey].levels[levelIndex];selectedGood=new Set();document.getElementById("miniTitle").textContent="🎮 "+l.title;document.getElementById("miniIntro").textContent="Профессор приготовил для тебя маленькое задание!";document.getElementById("gameInstruction").textContent=l.game;document.getElementById("miniFeedback").textContent="";document.getElementById("miniNext").style.display="none";let box=document.getElementById("miniGame");box.innerHTML="";l.items.forEach((item,i)=>{let b=document.createElement("button");b.className="tile";b.textContent=item;b.setAttribute("aria-label","Вариант "+(i+1));b.onclick=()=>chooseTile(i,b);box.appendChild(b)});show("mini");say(l.game)}
 function chooseTile(i,b){let l=worlds[worldKey].levels[levelIndex];if(selectedGood.has(i))return;if(l.good.includes(i)){selectedGood.add(i);b.classList.add("selected");b.disabled=true;let needed=l.good.length;if(selectedGood.size===needed){document.getElementById("miniFeedback").textContent="🎉 Прекрасно! Ты всё сделал правильно!";document.getElementById("miniNext").style.display="block";say("Прекрасно! Ты всё сделал правильно!")}}else{b.animate([{transform:"translateX(-4px)"},{transform:"translateX(4px)"},{transform:"translateX(0)"}],{duration:230});document.getElementById("miniFeedback").textContent="Попробуй ещё раз. Подумай, что подходит!"}}
 function finishLevel(){let key=worldKey+levelIndex;if(!state.done.includes(key)){state.done.push(key);state.stars++;}if(state.done.length>=5&&!state.medals.includes("first"))state.medals.push("first");if(state.done.length>=10&&!state.medals.includes("second"))state.medals.push("second");if(state.done.length>=15&&!state.medals.includes("third"))state.medals.push("third");save();document.getElementById("winTitle").textContent="Ты открыл новую тайну!";document.getElementById("winText").textContent="Профессор Эйнштейн гордится тобой. Звезда знаний отправляется в твою коллекцию!";show("win");say("Ура! Ты получил звезду знаний!")}
-updateStats();
+
+const adventures={
+ sky:{icon:"🎈",title:"Воздушное приключение",desc:"Поднимемся на воздушном шаре и узнаем секреты воздуха, облаков и ветра.",tasks:[
+  {title:"Что наполняет шар?",story:"Воздух вокруг нас невидим, но он занимает место. Именно воздух помогает воздушному шару подниматься.",q:"Что находится внутри воздушного шара?",a:["Воздух","Песок","Камешки"],c:0,hint:"Вспомни, чем мы дышим.",game:"Найди то, что связано с воздухом.",items:["🌬️","🪨","🍃"],good:[0,2]},
+  {title:"Путешествие облака",story:"Облака состоят из крошечных капелек воды или кристалликов льда. Ветер помогает им двигаться по небу.",q:"Что помогает облакам плыть по небу?",a:["Ветер","Дорога","Рельсы"],c:0,hint:"Это движение воздуха.",game:"Выбери небесные явления.",items:["☁️","🌈","🚗"],good:[0,1]},
+  {title:"Сила ветра",story:"Ветер — это движущийся воздух. Он может качать ветви, крутить ветряки и помогать парусным лодкам.",q:"Что может двигать ветер?",a:["Ветряк","Кирпичная стена","Подземный камень"],c:0,hint:"Посмотри на предмет, у которого есть лопасти.",game:"Выбери то, что может двигаться от ветра.",items:["🪁","🌳","🧱"],good:[0,1]}
+ ]},
+ ocean:{icon:"🐠",title:"Подводное приключение",desc:"Погрузимся в океан, встретим его жителей и узнаем, почему воду нужно беречь.",tasks:[
+  {title:"Кто живёт в море?",story:"В морях и океанах живут рыбы, дельфины, осьминоги, черепахи и множество других удивительных существ.",q:"Кто из них морской житель?",a:["Дельфин","Верблюд","Белка"],c:0,hint:"Это умное животное умеет плавать и дышать воздухом.",game:"Найди морских обитателей.",items:["🐬","🐙","🐪"],good:[0,1]},
+  {title:"Коралловый город",story:"Коралловые рифы — дом для множества морских животных. Они очень красивы, но нуждаются в чистой воде.",q:"Что помогает морским жителям?",a:["Чистая вода","Пластиковый мусор","Грязные стоки"],c:0,hint:"Подумай, в какой воде приятно жить рыбам.",game:"Выбери, что сохраняет океан чистым.",items:["♻️","🗑️","🧹"],good:[0,2]},
+  {title:"Спасём океан",story:"Мусор в воде может навредить рыбам, птицам и черепахам. Мусор нужно выбрасывать в подходящие контейнеры.",q:"Куда нужно выбрасывать мусор?",a:["В контейнер","В море","На пляж"],c:0,hint:"Мусору место не в природе.",game:"Выбери хорошие поступки для океана.",items:["♻️","🚯","🛢️"],good:[0,1]}
+ ]},
+ forest:{icon:"🦊",title:"Лесное приключение",desc:"Отправимся по лесной тропинке и познакомимся с растениями и животными.",tasks:[
+  {title:"Лесные этажи",story:"В лесу растут высокие деревья, кустарники, травы и мхи. Каждому растению нужно место и свет.",q:"Что растёт в лесу?",a:["Деревья","Шкафы","Автобусы"],c:0,hint:"У этого растения есть ствол и ветви.",game:"Найди лесные растения.",items:["🌲","🌿","🚌"],good:[0,1]},
+  {title:"Чьи следы?",story:"В лесу живут лисы, зайцы, белки, птицы и насекомые. У каждого животного свои привычки и свой дом.",q:"Кто может жить в дупле дерева?",a:["Белка","Акула","Дельфин"],c:0,hint:"Этот зверёк любит орешки.",game:"Выбери лесных животных.",items:["🐿️","🦊","🐬"],good:[0,1]},
+  {title:"Добрый гость леса",story:"В лесу важно вести себя тихо, не ломать ветки, не трогать гнёзда и уносить мусор с собой.",q:"Как нужно вести себя в лесу?",a:["Беречь природу","Шуметь у гнёзд","Оставлять мусор"],c:0,hint:"Лес — дом животных и растений.",game:"Выбери добрые дела для леса.",items:["🗑️","🤫","🌱"],good:[1,2]}
+ ]},
+ lab:{icon:"🔬",title:"Научная лаборатория",desc:"Проведём безопасные мысленные опыты и узнаем, как исследуют окружающий мир.",tasks:[
+  {title:"Что тонет, что плавает?",story:"Некоторые предметы плавают на воде, а другие тонут. Это зависит от материала, формы и плотности предмета.",q:"Что обычно плавает на воде?",a:["Деревянная щепка","Металлический ключ","Камень"],c:0,hint:"Дерево часто легче воды по средней плотности.",game:"Выбери предметы, которые часто плавают.",items:["🪵","🧽","🪨"],good:[0,1]},
+  {title:"Магнитный секрет",story:"Магнит притягивает некоторые металлические предметы, например железные скрепки. Но не все металлы притягиваются магнитом.",q:"Что может притянуть магнит?",a:["Железную скрепку","Бумажный лист","Деревянную ложку"],c:0,hint:"Скрепку часто делают из стали.",game:"Найди предметы, которые могут притянуться магнитом.",items:["📎","🧲","🍃"],good:[0,1]},
+  {title:"Свет и тень",story:"Когда предмет преграждает путь свету, за ним может появиться тень. Тень меняется, если перемещать источник света или предмет.",q:"Когда появляется тень?",a:["Когда предмет закрывает свет","Когда звучит музыка","Когда идёт снег"],c:0,hint:"Попробуй представить фонарик и игрушку.",game:"Выбери источники света.",items:["🔦","☀️","🥄"],good:[0,1]}
+ ]}
+};
+let activeAdventure="",activeTask=0,adventureQuizPassed=false,adventureSelected=new Set();
+let adventureState={done:[]};
+try{adventureState={...adventureState,...JSON.parse(localStorage.getItem("littleEinstein04")||"{}")}}catch(e){}
+function saveAdventure(){localStorage.setItem("littleEinstein04",JSON.stringify(adventureState));updateAdventureStats()}
+function updateAdventureStats(){let n=adventureState.done.length;let el=document.getElementById("adventureCompleted");if(el)el.textContent=n}
+function openAdventure(key){
+ activeAdventure=key;let a=adventures[key];
+ document.getElementById("adventureIcon").textContent=a.icon;
+ document.getElementById("adventureTitle").textContent=a.title;
+ document.getElementById("adventureDesc").textContent=a.desc;
+ let box=document.getElementById("adventureTasks");box.innerHTML="";
+ a.tasks.forEach((t,i)=>{let b=document.createElement("button");b.className="level";
+ let done=adventureState.done.includes(key+i);
+ b.innerHTML=`<span class="level-icon">${["🎯","🧩","🏆"][i]}</span><span class="level-name">${i+1}. ${t.title}</span><span class="status">${done?"⭐":"✨"}</span>`;
+ b.onclick=()=>startAdventureTask(i);box.appendChild(b)});
+ show("adventure");say(a.title+". "+a.desc);
+}
+function startAdventureTask(i){
+ activeTask=i;let t=adventures[activeAdventure].tasks[i];
+ adventureQuizPassed=false;adventureSelected.clear();
+ document.getElementById("lessonIcon").textContent=adventures[activeAdventure].icon;
+ document.getElementById("lessonTitle").textContent=t.title;
+ document.getElementById("lessonText").textContent=t.story;
+ document.getElementById("lessonFact").textContent="💡 Подсказка: "+t.hint;
+ document.getElementById("lessonActions").innerHTML='<button class="btn blue" onclick="speakAdventureTask()">🔊 Послушать</button><button class="btn gold" onclick="startAdventureQuiz()">Начать задание →</button>';
+ show("lesson");say(t.title+". "+t.story);
+}
+function speakAdventureTask(){let t=adventures[activeAdventure].tasks[activeTask];say(t.title+". "+t.story+". Подсказка: "+t.hint)}
+function startAdventureQuiz(){
+ let t=adventures[activeAdventure].tasks[activeTask];
+ document.getElementById("question").textContent=t.q;
+ document.getElementById("feedback").textContent="";
+ document.getElementById("nextBtn").style.display="none";
+ document.getElementById("nextBtn").onclick=afterAdventureQuiz;
+ let box=document.getElementById("answers");box.innerHTML="";
+ t.a.forEach((v,i)=>{let b=document.createElement("button");b.className="choice";b.textContent=v;b.onclick=()=>answerAdventureQuiz(i,b);box.appendChild(b)});
+ show("quiz");say("Подумай и выбери ответ. "+t.q);
+}
+function answerAdventureQuiz(i,b){
+ let t=adventures[activeAdventure].tasks[activeTask],all=[...document.querySelectorAll("#answers button")];all.forEach(x=>x.disabled=true);
+ adventureQuizPassed=i===t.c;
+ if(adventureQuizPassed){b.classList.add("correct");document.getElementById("feedback").textContent="🌟 Верно! Отличное открытие!";say("Правильно! "+t.hint)}
+ else{b.classList.add("wrong");all[t.c].classList.add("correct");document.getElementById("feedback").textContent="Почти! "+t.hint;say("Попробуй ещё раз. "+t.hint)}
+ document.getElementById("nextBtn").textContent=adventureQuizPassed?"К мини-игре →":"Попробовать ещё раз";
+ document.getElementById("nextBtn").style.display="block";
+}
+function afterAdventureQuiz(){if(adventureQuizPassed)startAdventureMini();else startAdventureQuiz()}
+function startAdventureMini(){
+ let t=adventures[activeAdventure].tasks[activeTask];adventureSelected.clear();
+ document.getElementById("miniTitle").textContent="🎮 "+t.title;
+ document.getElementById("miniIntro").textContent="Помоги профессору выполнить задание!";
+ document.getElementById("gameInstruction").textContent=t.game;
+ document.getElementById("miniFeedback").textContent="";
+ document.getElementById("miniNext").style.display="none";
+ document.getElementById("miniNext").onclick=finishAdventureTask;
+ let box=document.getElementById("miniGame");box.innerHTML="";
+ t.items.forEach((v,i)=>{let b=document.createElement("button");b.className="tile";b.textContent=v;b.onclick=()=>chooseAdventureTile(i,b);box.appendChild(b)});
+ show("mini");say(t.game);
+}
+function chooseAdventureTile(i,b){
+ let t=adventures[activeAdventure].tasks[activeTask];if(adventureSelected.has(i))return;
+ if(t.good.includes(i)){adventureSelected.add(i);b.classList.add("selected");b.disabled=true;
+  if(adventureSelected.size===t.good.length){document.getElementById("miniFeedback").textContent="🎉 Задание выполнено!";document.getElementById("miniNext").style.display="block";say("Прекрасно! Ты справился!")}}
+ else{document.getElementById("miniFeedback").textContent="Попробуй ещё раз. Подумай, что подходит!";say("Попробуй ещё раз.")}
+}
+function finishAdventureTask(){
+ let key=activeAdventure+activeTask;
+ if(!adventureState.done.includes(key)){adventureState.done.push(key);adventureState.done.sort();state.stars++;save();saveAdventure()}
+ document.getElementById("winTitle").textContent="Приключение продолжается!";
+ document.getElementById("winText").textContent="Ты выполнил задание и получил звезду знаний! Профессор гордится тобой.";
+ show("win");say("Ура! Новая звезда знаний твоя!");
+}
+
+updateStats();updateAdventureStats();
 </script>
 </body>
 </html>
